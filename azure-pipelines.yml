@@ -27,7 +27,7 @@ steps:
     provider: 'azurerm'
     command: 'init'
     workingDirectory: 'infra'
-
+    backendType: 'local'   # ✅ THIS LINE FIXES YOUR ERROR
 - task: TerraformTask@5
   displayName: "Terraform Init"
   inputs:
