@@ -4,14 +4,10 @@ trigger:
 pool:
   vmImage: 'ubuntu-latest'
 
-variables:
-  terraformVersion: '1.5.0'
-
-
 steps:
 - checkout: self
 
-# Debug (optional but recommended)
+# Debug
 - script: |
     echo "Root:"
     ls -la
@@ -19,23 +15,35 @@ steps:
     ls -la infra
   displayName: "Check files"
 
+# Install Terraform
 - task: TerraformInstaller@1
   inputs:
     terraformVersion: 'latest'
+
+# Init
 - task: TerraformTask@5
+  displayName: "Terraform Init"
   inputs:
     provider: 'azurerm'
     command: 'init'
     workingDirectory: 'infra'
+
+# Plan ✅ FIXED
 - task: TerraformTask@5
+  displayName: "Terraform Plan"
   inputs:
     provider: 'azurerm'
     command: 'plan'
+    workingDirectory: 'infra'   # ✅ IMPORTANT
     environmentServiceNameAzureRM: 'terraform-secret'
     environmentAzureRmOverrideSubscriptionID: '6349a94a-bcc7-4da7-8f36-2f6bc3017bf7'
+
+# Apply ✅ FIXED
 - task: TerraformTask@5
+  displayName: "Terraform Apply"
   inputs:
     provider: 'azurerm'
     command: 'apply'
+    workingDirectory: 'infra'   # ✅ IMPORTANT
     environmentServiceNameAzureRM: 'terraform-secret'
     environmentAzureRmOverrideSubscriptionID: '6349a94a-bcc7-4da7-8f36-2f6bc3017bf7'
