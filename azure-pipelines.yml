@@ -12,14 +12,18 @@ steps:
   inputs:
     terraformVersion: '1.6.6'
 
-# Terraform Init
+# Terraform Init with Remote Backend
 - task: TerraformTaskV4@4
   displayName: "Terraform Init"
   inputs:
     provider: 'azurerm'
     command: 'init'
     workingDirectory: 'infra'
-    backendServiceArm: 'terraform-secret'   # your service connection
+    backendServiceArm: 'terraform-secret'   # service connection
+    backendAzureRmResourceGroupName: 'tf-backend-rg'
+    backendAzureRmStorageAccountName: 'tfstate12345demomilan245'
+    backendAzureRmContainerName: 'tfstate'
+    backendAzureRmKey: 'terraform.tfstate'
 
 # Terraform Plan
 - task: TerraformTaskV4@4
