@@ -17,7 +17,7 @@ steps:
 # Run Terraform using Azure authentication
 - task: AzureCLI@2
   inputs:
-    azureSubscription: 'service-connection'   # your service connection name
+    azureSubscription: 'terraform-secret'   # your service connection name
     scriptType: 'bash'
     scriptLocation: 'inlineScript'
     inlineScript: |
