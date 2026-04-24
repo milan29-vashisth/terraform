@@ -8,29 +8,33 @@ steps:
 - checkout: self
 
 # Install Terraform
-- script: |
-    wget https://releases.hashicorp.com/terraform/1.6.6/terraform_1.6.6_linux_amd64.zip
-    unzip terraform_1.6.6_linux_amd64.zip
-    sudo mv terraform /usr/local/bin/
-    terraform -version
-  displayName: "Install Terraform"
-
-# Run Terraform using Azure login (SIMPLE METHOD)
-- task: AzureCLI@2
-  displayName: "Run Terraform"
+- task: TerraformInstaller@1
   inputs:
-    azureSubscription: 'terraform-secret'   # your service connection
-    scriptType: bash
-    scriptLocation: inlineScript
-    inlineScript: |
-      echo "Checking files..."
-      ls -la
-      ls -la infra
+    terraformVersion: '1.6.6'
 
-      echo "Running Terraform..."
+# Terraform Init
+- task: TerraformTaskV4@4
+  displayName: "Terraform Init"
+  inputs:
+    provider: 'azurerm'
+    command: 'init'
+    workingDirectory: 'infra'
+    backendServiceArm: 'terraform-secret'   # your service connection
 
-      cd infra
+# Terraform Plan
+- task: TerraformTaskV4@4
+  displayName: "Terraform Plan"
+  inputs:
+    provider: 'azurerm'
+    command: 'plan'
+    workingDirectory: 'infra'
+    environmentServiceNameAzureRM: 'terraform-secret'
 
-      terraform init
-      terraform plan
-      terraform apply -auto-approve
+# Terraform Apply
+- task: TerraformTaskV4@4
+  displayName: "Terraform Apply"
+  inputs:
+    provider: 'azurerm'
+    command: 'apply'
+    workingDirectory: 'infra'
+    environmentServiceNameAzureRM: 'terraform-secret'
