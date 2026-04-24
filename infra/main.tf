@@ -1,5 +1,5 @@
 resource "azurerm_resource_group" "rg" {
-  name     = "rg-linux-demo"
+  name     = "rg-linux-demo-01"
   location = "East US"
 }
 
