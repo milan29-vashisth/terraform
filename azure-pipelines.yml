@@ -15,36 +15,22 @@ steps:
     terraform -version
   displayName: "Install Terraform"
 
-# Azure Login
+# Run Terraform using Azure login (SIMPLE METHOD)
 - task: AzureCLI@2
-  displayName: "Azure Login"
+  displayName: "Run Terraform"
   inputs:
-    azureSubscription: 'terraform-secret'
+    azureSubscription: 'terraform-secret'   # your service connection
     scriptType: bash
     scriptLocation: inlineScript
     inlineScript: |
-      az account show
+      echo "Checking files..."
+      ls -la
+      ls -la infra
 
-# Debug
-- script: |
-    ls -la
-    ls -la infra
-  displayName: "Check files"
+      echo "Running Terraform..."
 
-# Terraform Init
-- script: |
-    cd infra
-    terraform init
-  displayName: "Terraform Init"
+      cd infra
 
-# Terraform Plan
-- script: |
-    cd infra
-    terraform plan
-  displayName: "Terraform Plan"
-
-# Terraform Apply
-- script: |
-    cd infra
-    terraform apply -auto-approve
-  displayName: "Terraform Apply"
+      terraform init
+      terraform plan
+      terraform apply -auto-approve
