@@ -7,28 +7,35 @@ pool:
 variables:
   terraformVersion: '1.5.0'
 
-steps:
 
-# Install Terraform
+steps:
+- checkout: self
+
+# Debug (optional but recommended)
+- script: |
+    echo "Root:"
+    ls -la
+    echo "Infra folder:"
+    ls -la infra
+  displayName: "Check files"
+
 - task: TerraformInstaller@1
   inputs:
-    terraformVersion: $(terraformVersion)
-
-# Run Terraform using Azure authentication
-- task: AzureCLI@2
+    terraformVersion: 'latest'
+- task: TerraformTask@5
   inputs:
-    azureSubscription: 'terraform-secret'   # your service connection name
-    scriptType: 'bash'
-    scriptLocation: 'inlineScript'
-    inlineScript: |
-      echo "Running Terraform Init"
-      terraform init
-
-      echo "Running Terraform Validate"
-      terraform validate
-
-      echo "Running Terraform Plan"
-      terraform plan
-
-      echo "Running Terraform Apply"
-      terraform apply -auto-approve
+    provider: 'azurerm'
+    command: 'init'
+    backendServiceArm: 'terraform-secret'
+- task: TerraformTask@5
+  inputs:
+    provider: 'azurerm'
+    command: 'plan'
+    environmentServiceNameAzureRM: 'terraform-secret'
+    environmentAzureRmOverrideSubscriptionID: '6349a94a-bcc7-4da7-8f36-2f6bc3017bf7'
+- task: TerraformTask@5
+  inputs:
+    provider: 'azurerm'
+    command: 'apply'
+    environmentServiceNameAzureRM: 'terraform-secret'
+    environmentAzureRmOverrideSubscriptionID: '6349a94a-bcc7-4da7-8f36-2f6bc3017bf7'
