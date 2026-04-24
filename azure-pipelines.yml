@@ -1,0 +1,34 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  terraformVersion: '1.5.0'
+
+steps:
+
+# Install Terraform
+- task: TerraformInstaller@1
+  inputs:
+    terraformVersion: $(terraformVersion)
+
+# Run Terraform using Azure authentication
+- task: AzureCLI@2
+  inputs:
+    azureSubscription: 'service-connection'   # your service connection name
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      echo "Running Terraform Init"
+      terraform init
+
+      echo "Running Terraform Validate"
+      terraform validate
+
+      echo "Running Terraform Plan"
+      terraform plan
+
+      echo "Running Terraform Apply"
+      terraform apply -auto-approve
