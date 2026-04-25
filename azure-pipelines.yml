@@ -22,7 +22,7 @@ steps:
     backendServiceArm: 'terraform-secret'   # service connection
     backendAzureRmResourceGroupName: 'tf-backend-rg'
     backendAzureRmStorageAccountName: 'tfstate12345demomilan245'
-    backendAzureRmContainerName: 'tfstate'
+    backendAzureRmContainerName: 'tfstate-uat'
     backendAzureRmKey: 'terraform.tfstate'
 
 # Terraform Plan
