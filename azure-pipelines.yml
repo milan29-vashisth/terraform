@@ -29,7 +29,7 @@ steps:
     backendServiceArm: 'terraform-secret'   # service connection
     backendAzureRmResourceGroupName: 'tf-backend-rg'
     backendAzureRmStorageAccountName: 'tfstate12345demomilan245'
-    backendAzureRmContainerName: 'tfstate-prod'
+    backendAzureRmContainerName: 'tfstate-dev'
     backendAzureRmKey: 'terraform.tfstate'
 
 # Terraform Plan
@@ -40,7 +40,7 @@ steps:
     command: 'plan'
     workingDirectory: 'infra'
     environmentServiceNameAzureRM: 'terraform-secret'
-    commandOptions: '-var-file=prod.tfvars -out=tfplan'
+    commandOptions: '-var-file=dev.tfvars -out=tfplan'
 
 # Terraform Apply
 - task: TerraformTaskV4@4
