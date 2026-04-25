@@ -1,3 +1,3 @@
 variable "environment" {
-  default = "uat"
+  default = "prod"
 }

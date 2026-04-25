@@ -10,3 +10,4 @@ crash.log
 
 # Optional (depends on team)
 .terraform.lock.hcl
+*.tfvars
