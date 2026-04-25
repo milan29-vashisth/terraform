@@ -33,6 +33,7 @@ steps:
     command: 'plan'
     workingDirectory: 'infra'
     environmentServiceNameAzureRM: 'terraform-secret'
+    commandOptions: '-var-file=dev.tfvars -out=tfplan'
 
 # Terraform Apply
 - task: TerraformTaskV4@4
