@@ -7,6 +7,13 @@ pool:
 steps:
 - checkout: self
 
+- script: |
+    echo "Root:"
+    ls -la
+    echo "Infra:"
+    ls -la infra
+  displayName: "Check Files"
+
 # Install Terraform
 - task: TerraformInstaller@1
   inputs:
@@ -26,12 +33,6 @@ steps:
     backendAzureRmKey: 'terraform.tfstate'
 
 # Terraform Plan
-- script: |
-    echo "Root:"
-    ls -la
-    echo "Infra:"
-    ls -la infra
-  displayName: "Check Files"
 - task: TerraformTaskV4@4
   displayName: "Terraform Plan"
   inputs:
