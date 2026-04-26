@@ -40,7 +40,7 @@ steps:
     backendServiceArm: 'terraform-secret'
     backendAzureRmResourceGroupName: 'tf-backend-rg'
     backendAzureRmStorageAccountName: 'tfstate12345demomilan245'
-    backendAzureRmContainerName: 'tfstate-prod'
+    backendAzureRmContainerName: 'tfstate-${{ parameters.environment }}'
     backendAzureRmKey: '${{ parameters.environment }}.terraform.tfstate'
 
 # Terraform Plan
