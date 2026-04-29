@@ -48,7 +48,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
     azurerm_network_interface.nic.id
   ]
 
-  admin_password = "Password@1234" # For demo only (use Key Vault in real projects)
+  admin_password = var.vm_password # For demo only (use Key Vault in real projects)
 
   disable_password_authentication = false
 
