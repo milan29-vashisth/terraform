@@ -1,12 +1,4 @@
-# Terraform folder (always ignore)
 .terraform/
-
-# State files (VERY important to ignore)
 *.tfstate
-*.tfstate.backup
-
-# Crash logs
-crash.log
-
-# Optional (depends on team)
+*.tfstate.*
 .terraform.lock.hcl
