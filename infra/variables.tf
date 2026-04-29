@@ -7,3 +7,7 @@ variable "vm_password" {
   type        = string
   sensitive   = true
 }
+variable "location" {
+  default = "East US"
+}
+variable "vm_size" {}
