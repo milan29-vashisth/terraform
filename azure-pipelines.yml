@@ -4,6 +4,9 @@ trigger:
 pool:
   vmImage: 'ubuntu-latest'
 
+variables:
+- group: terraform-secrets
+
 parameters:
 - name: environment
   displayName: Select Environment
@@ -55,6 +58,8 @@ steps:
       -var="environment=${{ parameters.environment }}"
       -var-file=${{ parameters.environment }}.tfvars
       -out=tfplan
+  env:
+    TF_VAR_vm_password: $(vm_password)
 
 # Terraform Apply
 - task: TerraformTaskV4@4
@@ -65,3 +70,5 @@ steps:
     workingDirectory: 'infra'
     environmentServiceNameAzureRM: 'terraform-secret'
     commandOptions: 'tfplan'
+  env:
+    TF_VAR_vm_password: $(vm_password)
