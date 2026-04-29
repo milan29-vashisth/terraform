@@ -23,3 +23,11 @@ module "vm" {
   admin_username = "azureuser"
   vm_password    = var.vm_password
 }
+
+module "keyvault" {
+  source = "../modules/keyvault"
+
+  environment         = var.environment
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+}
