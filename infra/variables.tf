@@ -10,4 +10,5 @@ variable "vm_password" {
 variable "location" {
   default = "East US"
 }
-variable "vm_size" {}
+variable "vm_size" {
+}
