@@ -1,0 +1,52 @@
+parameters:
+- name: environment
+  type: string
+
+jobs:
+- job: Deploy_${{ parameters.environment }}
+  pool:
+    vmImage: ubuntu-latest
+
+  steps:
+  - checkout: self
+
+  - task: TerraformInstaller@1
+    inputs:
+      terraformVersion: '1.6.6'
+
+  - task: TerraformTaskV4@4
+    displayName: Terraform Init ${{ parameters.environment }}
+    inputs:
+      provider: azurerm
+      command: init
+      workingDirectory: infra
+      backendServiceArm: terraform-secret
+      backendAzureRmResourceGroupName: tf-backend-rg
+      backendAzureRmStorageAccountName: tfstate12345demomilan245
+      backendAzureRmContainerName: tfstate-${{ parameters.environment }}
+      backendAzureRmKey: ${{ parameters.environment }}.terraform.tfstate
+
+  - task: TerraformTaskV4@4
+    displayName: Terraform Plan ${{ parameters.environment }}
+    inputs:
+      provider: azurerm
+      command: plan
+      workingDirectory: infra
+      environmentServiceNameAzureRM: terraform-secret
+      commandOptions: >
+        -var="environment=${{ parameters.environment }}"
+        -var-file=${{ parameters.environment }}.tfvars
+        -out=tfplan
+    env:
+      TF_VAR_vm_password: $(vm-password)
+
+  - task: TerraformTaskV4@4
+    displayName: Terraform Apply ${{ parameters.environment }}
+    inputs:
+      provider: azurerm
+      command: apply
+      workingDirectory: infra
+      environmentServiceNameAzureRM: terraform-secret
+      commandOptions: tfplan
+    env:
+      TF_VAR_vm_password: $(vm-password)

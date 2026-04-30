@@ -1,0 +1,20 @@
+parameters:
+- name: stageName
+  type: string
+
+- name: instructions
+  type: string
+
+stages:
+- stage: ${{ parameters.stageName }}
+  jobs:
+  - job: Approval
+    pool: server
+
+    steps:
+    - task: ManualValidation@0
+      timeoutInMinutes: 1440
+      inputs:
+        notifyUsers: 'deepanshu.v7@gmail.com'
+        instructions: ${{ parameters.instructions }}
+        onTimeout: reject
