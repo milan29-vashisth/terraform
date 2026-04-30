@@ -59,7 +59,7 @@ steps:
       -var-file=${{ parameters.environment }}.tfvars
       -out=tfplan
   env:
-    TF_VAR_vm_password: $(vm_password)
+    TF_VAR_vm_password: $(vm-password)
 
 # Terraform Apply
 - task: TerraformTaskV4@4
@@ -71,4 +71,4 @@ steps:
     environmentServiceNameAzureRM: 'terraform-secret'
     commandOptions: 'tfplan'
   env:
-    TF_VAR_vm_password: $(vm_password)
+    TF_VAR_vm_password: $(vm-password)
