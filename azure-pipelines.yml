@@ -6,208 +6,36 @@ variables:
 
 stages:
 
-# =========================================================
-# DEV DEPLOYMENT
-# =========================================================
 - stage: Dev
-  displayName: Deploy Dev
   jobs:
-  - job: DeployDev
-    pool:
-      vmImage: ubuntu-latest
+  - template: templates/terraform-deploy.yml
+    parameters:
+      environment: dev
 
-    steps:
-    - checkout: self
-
-    - task: TerraformInstaller@1
-      inputs:
-        terraformVersion: '1.6.6'
-
-    - task: TerraformTaskV4@4
-      displayName: Terraform Init Dev
-      inputs:
-        provider: azurerm
-        command: init
-        workingDirectory: infra
-        backendServiceArm: terraform-secret
-        backendAzureRmResourceGroupName: tf-backend-rg
-        backendAzureRmStorageAccountName: tfstate12345demomilan245
-        backendAzureRmContainerName: tfstate-dev
-        backendAzureRmKey: dev.terraform.tfstate
-
-    - task: TerraformTaskV4@4
-      displayName: Terraform Plan Dev
-      inputs:
-        provider: azurerm
-        command: plan
-        workingDirectory: infra
-        environmentServiceNameAzureRM: terraform-secret
-        commandOptions: >
-          -var="environment=dev"
-          -var-file=dev.tfvars
-          -out=tfplan
-      env:
-        TF_VAR_vm_password: $(vm-password)
-
-    - task: TerraformTaskV4@4
-      displayName: Terraform Apply Dev
-      inputs:
-        provider: azurerm
-        command: apply
-        workingDirectory: infra
-        environmentServiceNameAzureRM: terraform-secret
-        commandOptions: tfplan
-      env:
-        TF_VAR_vm_password: $(vm-password)
-
-# =========================================================
-# UAT APPROVAL
-# =========================================================
 - stage: ApproveUAT
-  displayName: Approve UAT Deployment
   dependsOn: Dev
-  condition: succeeded()
-
   jobs:
-  - job: WaitForUATApproval
-    pool: server
-    steps:
-    - task: ManualValidation@0
-      timeoutInMinutes: 1440
-      inputs:
-        notifyUsers: 'your-email@example.com'
-        instructions: 'Approve deployment to UAT'
-        onTimeout: reject
+  - template: templates/manual-approval.yml
+    parameters:
+      instructions: Approve deployment to UAT
 
-# =========================================================
-# UAT DEPLOYMENT
-# =========================================================
 - stage: UAT
-  displayName: Deploy UAT
   dependsOn: ApproveUAT
-  condition: succeeded()
-
   jobs:
-  - job: DeployUAT
-    pool:
-      vmImage: ubuntu-latest
+  - template: templates/terraform-deploy.yml
+    parameters:
+      environment: uat
 
-    steps:
-    - checkout: self
-
-    - task: TerraformInstaller@1
-      inputs:
-        terraformVersion: '1.6.6'
-
-    - task: TerraformTaskV4@4
-      displayName: Terraform Init UAT
-      inputs:
-        provider: azurerm
-        command: init
-        workingDirectory: infra
-        backendServiceArm: terraform-secret
-        backendAzureRmResourceGroupName: tf-backend-rg
-        backendAzureRmStorageAccountName: tfstate12345demomilan245
-        backendAzureRmContainerName: tfstate-uat
-        backendAzureRmKey: uat.terraform.tfstate
-
-    - task: TerraformTaskV4@4
-      displayName: Terraform Plan UAT
-      inputs:
-        provider: azurerm
-        command: plan
-        workingDirectory: infra
-        environmentServiceNameAzureRM: terraform-secret
-        commandOptions: >
-          -var="environment=uat"
-          -var-file=uat.tfvars
-          -out=tfplan
-      env:
-        TF_VAR_vm_password: $(vm-password)
-
-    - task: TerraformTaskV4@4
-      displayName: Terraform Apply UAT
-      inputs:
-        provider: azurerm
-        command: apply
-        workingDirectory: infra
-        environmentServiceNameAzureRM: terraform-secret
-        commandOptions: tfplan
-      env:
-        TF_VAR_vm_password: $(vm-password)
-
-# =========================================================
-# PROD APPROVAL
-# =========================================================
 - stage: ApproveProd
-  displayName: Approve Prod Deployment
   dependsOn: UAT
-  condition: succeeded()
-
   jobs:
-  - job: WaitForProdApproval
-    pool: server
-    steps:
-    - task: ManualValidation@0
-      timeoutInMinutes: 1440
-      inputs:
-        notifyUsers: 'your-email@example.com'
-        instructions: 'Approve deployment to Production'
-        onTimeout: reject
+  - template: templates/manual-approval.yml
+    parameters:
+      instructions: Approve deployment to Production
 
-# =========================================================
-# PROD DEPLOYMENT
-# =========================================================
 - stage: Prod
-  displayName: Deploy Prod
   dependsOn: ApproveProd
-  condition: succeeded()
-
   jobs:
-  - job: DeployProd
-    pool:
-      vmImage: ubuntu-latest
-
-    steps:
-    - checkout: self
-
-    - task: TerraformInstaller@1
-      inputs:
-        terraformVersion: '1.6.6'
-
-    - task: TerraformTaskV4@4
-      displayName: Terraform Init Prod
-      inputs:
-        provider: azurerm
-        command: init
-        workingDirectory: infra
-        backendServiceArm: terraform-secret
-        backendAzureRmResourceGroupName: tf-backend-rg
-        backendAzureRmStorageAccountName: tfstate12345demomilan245
-        backendAzureRmContainerName: tfstate-prod
-        backendAzureRmKey: prod.terraform.tfstate
-
-    - task: TerraformTaskV4@4
-      displayName: Terraform Plan Prod
-      inputs:
-        provider: azurerm
-        command: plan
-        workingDirectory: infra
-        environmentServiceNameAzureRM: terraform-secret
-        commandOptions: >
-          -var="environment=prod"
-          -var-file=prod.tfvars
-          -out=tfplan
-      env:
-        TF_VAR_vm_password: $(vm-password)
-
-    - task: TerraformTaskV4@4
-      displayName: Terraform Apply Prod
-      inputs:
-        provider: azurerm
-        command: apply
-        workingDirectory: infra
-        environmentServiceNameAzureRM: terraform-secret
-        commandOptions: tfplan
-      env:
-        TF_VAR_vm_password: $(vm-password)
+  - template: templates/terraform-deploy.yml
+    parameters:
+      environment: prod
