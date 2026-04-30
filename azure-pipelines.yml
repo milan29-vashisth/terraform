@@ -7,68 +7,160 @@ pool:
 variables:
 - group: terraform-secrets
 
-parameters:
-- name: environment
-  displayName: Select Environment
-  type: string
-  default: dev
-  values:
-    - dev
-    - uat
-    - prod
+stages:
 
-steps:
+# ================= DEV =================
+- stage: Dev
+  jobs:
+  - job: DeployDev
+    steps:
+    - checkout: self
 
-- checkout: self
+    - task: TerraformInstaller@1
+      inputs:
+        terraformVersion: '1.6.6'
 
-- script: |
-    echo "Root:"
-    ls -la
-    echo "Infra:"
-    ls -la infra
-  displayName: "Check Files"
+    - task: TerraformTaskV4@4
+      displayName: Terraform Init Dev
+      inputs:
+        provider: azurerm
+        command: init
+        workingDirectory: infra
+        backendServiceArm: terraform-secret
+        backendAzureRmResourceGroupName: tf-backend-rg
+        backendAzureRmStorageAccountName: tfstate12345demomilan245
+        backendAzureRmContainerName: tfstate-dev
+        backendAzureRmKey: dev.terraform.tfstate
 
-# Install Terraform
-- task: TerraformInstaller@1
-  inputs:
-    terraformVersion: '1.6.6'
+    - task: TerraformTaskV4@4
+      displayName: Terraform Plan Dev
+      inputs:
+        provider: azurerm
+        command: plan
+        workingDirectory: infra
+        environmentServiceNameAzureRM: terraform-secret
+        commandOptions: >
+          -var="environment=dev"
+          -var-file=dev.tfvars
+          -out=tfplan
+      env:
+        TF_VAR_vm_password: $(vm-password)
 
-# Terraform Init
-- task: TerraformTaskV4@4
-  displayName: "Terraform Init"
-  inputs:
-    provider: 'azurerm'
-    command: 'init'
-    workingDirectory: 'infra'
-    backendServiceArm: 'terraform-secret'
-    backendAzureRmResourceGroupName: 'tf-backend-rg'
-    backendAzureRmStorageAccountName: 'tfstate12345demomilan245'
-    backendAzureRmContainerName: 'tfstate-${{ parameters.environment }}'
-    backendAzureRmKey: '${{ parameters.environment }}.terraform.tfstate'
+    - task: TerraformTaskV4@4
+      displayName: Terraform Apply Dev
+      inputs:
+        provider: azurerm
+        command: apply
+        workingDirectory: infra
+        environmentServiceNameAzureRM: terraform-secret
+        commandOptions: tfplan
+      env:
+        TF_VAR_vm_password: $(vm-password)
 
-# Terraform Plan
-- task: TerraformTaskV4@4
-  displayName: "Terraform Plan"
-  inputs:
-    provider: 'azurerm'
-    command: 'plan'
-    workingDirectory: 'infra'
-    environmentServiceNameAzureRM: 'terraform-secret'
-    commandOptions: >
-      -var="environment=${{ parameters.environment }}"
-      -var-file=${{ parameters.environment }}.tfvars
-      -out=tfplan
-  env:
-    TF_VAR_vm_password: $(vm-password)
+# ================= UAT =================
+- stage: UAT
+  dependsOn: Dev
+  condition: succeeded()
+  jobs:
+  - deployment: DeployUAT
+    environment: uat-approval
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - checkout: self
 
-# Terraform Apply
-- task: TerraformTaskV4@4
-  displayName: "Terraform Apply"
-  inputs:
-    provider: 'azurerm'
-    command: 'apply'
-    workingDirectory: 'infra'
-    environmentServiceNameAzureRM: 'terraform-secret'
-    commandOptions: 'tfplan'
-  env:
-    TF_VAR_vm_password: $(vm-password)
+          - task: TerraformInstaller@1
+            inputs:
+              terraformVersion: '1.6.6'
+
+          - task: TerraformTaskV4@4
+            displayName: Terraform Init UAT
+            inputs:
+              provider: azurerm
+              command: init
+              workingDirectory: infra
+              backendServiceArm: terraform-secret
+              backendAzureRmResourceGroupName: tf-backend-rg
+              backendAzureRmStorageAccountName: tfstate12345demomilan245
+              backendAzureRmContainerName: tfstate-uat
+              backendAzureRmKey: uat.terraform.tfstate
+
+          - task: TerraformTaskV4@4
+            displayName: Terraform Plan UAT
+            inputs:
+              provider: azurerm
+              command: plan
+              workingDirectory: infra
+              environmentServiceNameAzureRM: terraform-secret
+              commandOptions: >
+                -var="environment=uat"
+                -var-file=uat.tfvars
+                -out=tfplan
+            env:
+              TF_VAR_vm_password: $(vm-password)
+
+          - task: TerraformTaskV4@4
+            displayName: Terraform Apply UAT
+            inputs:
+              provider: azurerm
+              command: apply
+              workingDirectory: infra
+              environmentServiceNameAzureRM: terraform-secret
+              commandOptions: tfplan
+            env:
+              TF_VAR_vm_password: $(vm-password)
+
+# ================= PROD =================
+- stage: Prod
+  dependsOn: UAT
+  condition: succeeded()
+  jobs:
+  - deployment: DeployProd
+    environment: prod-approval
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - checkout: self
+
+          - task: TerraformInstaller@1
+            inputs:
+              terraformVersion: '1.6.6'
+
+          - task: TerraformTaskV4@4
+            displayName: Terraform Init Prod
+            inputs:
+              provider: azurerm
+              command: init
+              workingDirectory: infra
+              backendServiceArm: terraform-secret
+              backendAzureRmResourceGroupName: tf-backend-rg
+              backendAzureRmStorageAccountName: tfstate12345demomilan245
+              backendAzureRmContainerName: tfstate-prod
+              backendAzureRmKey: prod.terraform.tfstate
+
+          - task: TerraformTaskV4@4
+            displayName: Terraform Plan Prod
+            inputs:
+              provider: azurerm
+              command: plan
+              workingDirectory: infra
+              environmentServiceNameAzureRM: terraform-secret
+              commandOptions: >
+                -var="environment=prod"
+                -var-file=prod.tfvars
+                -out=tfplan
+            env:
+              TF_VAR_vm_password: $(vm-password)
+
+          - task: TerraformTaskV4@4
+            displayName: Terraform Apply Prod
+            inputs:
+              provider: azurerm
+              command: apply
+              workingDirectory: infra
+              environmentServiceNameAzureRM: terraform-secret
+              commandOptions: tfplan
+            env:
+              TF_VAR_vm_password: $(vm-password)
