@@ -147,6 +147,6 @@ terraform apply -var-file="prod.tfvars"
 
 ## Author
 
-Deepanshu Vashisth
+Milan Vashisth
 
 ---
