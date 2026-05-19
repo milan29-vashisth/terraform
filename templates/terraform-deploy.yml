@@ -52,3 +52,17 @@ jobs:
       commandOptions: tfplan
     env:
       TF_VAR_vm_password: $(vm-password)
+
+  - task: AzureCLI@2
+    displayName: Wait for Key Vault DNS
+    inputs:
+    azureSubscription: 'azure-service-connection'
+    scriptType: bash
+    scriptLocation: inlineScript
+    inlineScript: |
+      for i in {1..20}
+      do
+        nslookup kv-demo-${{ parameters.environment }}-milan0101.vault.azure.net && break
+        echo "Waiting for DNS propagation..."
+        sleep 15
+      done
